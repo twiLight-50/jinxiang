@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>上下跳动的圆球加载动画</title>
+    <style>
+      .cont {
+        border: 1px dotted red;
+        width: 750px;
+        margin: auto;
+        display: flex;
+        justify-content: center;
+      }
+      .cont div {
+        animation: move 1s  infinite normal ease;
+        margin: 10px 5px;
+        width: 10px;
+        height: 10px;
+        background-color: royalblue;
+        border-radius: 50%;
+      }
+      .cont >div:nth-child(2n-1){
+        animation-delay: 0.5s;
+      }
+      @keyframes move {
+        0% {  transform: scale(0.4); }
+		    25% { transform: translateY(20px);  }
+		    50% {transform: scale(1.1);    }
+		    75% { transform: translateY(-20px);  }
+		    100% {
+		        transform: translateY(0);
+		        transform: scale(0.75);
+		    }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cont">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </body>
+</html>

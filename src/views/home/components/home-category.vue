@@ -1,0 +1,252 @@
+<template>
+  <div class="home-category" @mouseleave="categoryId = null">
+    <ul class="menu">
+      <li
+        :class="{ active: categoryId === i.id }"
+        v-for="i in menuList"
+        :key="i.id"
+        @mouseenter="categoryId = i.id"
+      >
+        <router-link :to="`/category/${i.id}`">{{ i.name }}</router-link>
+        <template v-if="i.children">
+          <router-link
+            v-for="sub in i.children"
+            :key="sub.id"
+            :to="`/category/sub/${sub.id}`"
+            >{{ sub.name }}</router-link
+          >
+        </template>
+        <template v-else>
+          <JxSkeleton class="Jx-skeleton" width="60px" height="18px" style="margin-right: 5px;" bg="rgba(255,255,255,0.2)"/>
+          <JxSkeleton class="Jx-skeleton" width="50px" height="18px" bg="rgba(255,255,255,0.2)"/>
+        </template>
+      </li>
+    </ul>
+    <!-- 弹层 -->
+    <div class="layer">
+      <h4>
+        {{ currCategory && currCategory.id === "band" ? "品牌" : "分类" }}推荐
+        <small>根据您的购买或浏览记录推荐</small>
+      </h4>
+      <!-- 商品 -->
+      <ul v-if="currCategory && currCategory.goods">
+        <li v-for="i in currCategory.goods" :key="i.id">
+          <RouterLink :to="`/product/${i.id}`">
+            <img :src="i.picture" alt="" />
+            <div class="info">
+              <p class="name ellipsis-2">{{ i.name }}</p>
+              <p class="desc ellipsis">{{ i.desc }}</p>
+              <p class="price"><i>¥</i>{{ i.price }}</p>
+            </div>
+          </RouterLink>
+        </li>
+      </ul>
+      <!-- 品牌 -->
+      <ul v-if="currCategory && currCategory.brands">
+        <li class="brand" v-for="i in currCategory.brands" :key="i.id">
+          <router-link to="/">
+            <img :src="i.picture" alt="" />
+            <div class="info">
+              <p class="place"><i class="iconfont icon-dingwei"></i>北京</p>
+              <p class="name ellipsis">{{ i.name }}</p>
+              <p class="desc ellipsis-2">{{ i.desc }}</p>
+            </div>
+          </router-link>
+        </li>
+      </ul>
+    </div>
+  </div>
+</template>
+
+<script>
+import { reactive, computed, ref } from "vue";
+import { useStore } from "vuex";
+import { findBrand } from "@/api/home";
+
+// import {  } from '@vue/runtime-core';
+export default {
+  name: "HomeCategory",
+  setup() {
+    const store = useStore();
+    const band = reactive({
+      id: "band",
+      name: "品牌",
+      children: [
+        {
+          id: "band-child",
+          name: "品牌推荐",
+        },
+      ],
+      brands: [],
+    });
+    const menuList = computed(() => {
+      const list = store.state.category.list.map((item) => {
+        return {
+          id: item.id,
+          name: item.name,
+          children: item.children && item.children.slice(0, 2),
+          goods: item.goods,
+        };
+      });
+      list.push(band);
+      return list;
+    });
+    // console.log(menu.value);
+    // // 得到弹出层的推荐商品数据
+    const categoryId = ref(null);
+    const currCategory = computed(() => {
+      return menuList.value.find((item) => {
+        // console.log(categoryId.value);
+        if (item.id === categoryId.value)
+          // console.log(item);
+          return item;
+      });
+      // console.log(menuList.value);
+    });
+    // 获取品牌数据
+    findBrand().then((data) => {
+      band.brands = data.result;
+    });
+    // console.log(band.brands);
+    // console.log(currCategory);
+    return {
+      menuList,
+      categoryId,
+      currCategory,
+    };
+  },
+};
+</script>
+
+<style scoped lang="less">
+.home-category {
+  width: 250px;
+  height: 500px;
+  background: rgba(0, 0, 0, 0.8);
+  position: relative;
+  z-index: 99;
+  .menu {
+    li {
+      padding-left: 40px;
+      height: 50px;
+      line-height: 50px;
+      &:hover,
+      &.active {
+        background: @JxColor;
+      }
+      a {
+        margin-right: 4px;
+        color: #fff;
+        &:first-child {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+  // 弹层央视
+  .layer {
+    width: 990px;
+    height: 500px;
+    background: rgba(255, 255, 255, 0.8);
+    position: absolute;
+    left: 250px;
+    top: 0;
+    display: none;
+    padding: 0 15px;
+    h4 {
+      font-size: 20px;
+      font-weight: normal;
+      line-height: 80px;
+      small {
+        font-size: 16px;
+        color: #666;
+      }
+    }
+    ul {
+      display: flex;
+      flex-wrap: wrap;
+      li {
+        width: 310px;
+        height: 120px;
+        margin-right: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        background: #fff;
+        &:nth-child(3n) {
+          margin-right: 0;
+        }
+        a {
+          display: flex;
+          width: 100%;
+          height: 100%;
+          align-items: center;
+          padding: 10px;
+          &:hover {
+            background: #e3f9f4;
+          }
+          img {
+            width: 95px;
+            height: 95px;
+          }
+          .info {
+            padding-left: 10px;
+            line-height: 24px;
+            width: 190px;
+            .name {
+              font-size: 16px;
+              color: #666;
+            }
+            .desc {
+              color: #999;
+            }
+            .price {
+              font-size: 22px;
+              color: @priceColor;
+              i {
+                font-size: 16px;
+              }
+            }
+          }
+        }
+      }
+      // 品牌的样式
+      li.brand {
+        height: 180px;
+        a {
+          align-items: flex-start;
+          img {
+            width: 120px;
+            height: 160px;
+          }
+          .info {
+            p {
+              margin-top: 8px;
+            }
+            .place {
+              color: #999;
+            }
+          }
+        }
+      }
+    }
+  }
+  &:hover {
+    .layer {
+      display: block;
+    }
+  }
+}
+//  骨架动画
+.Jx-skeleton {
+  animation: fade 1s linear infinite alternate;
+}
+@keyframes fade {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 1;
+  }
+}
+</style>
